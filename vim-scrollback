@@ -20,6 +20,54 @@
 #
 # Api: http://cvs.schmorp.de/rxvt-unicode/doc/rxvtperl.3.html
 
+################################################################################
+# While not in vim scrollback mode
+# ctrl-v - enter vim-scrollback mode
+# ctrl-r * - pastes the primary clipboard onto the command line
+# ctrl-r + - pastes the secondary clipboard onto the command line
+#
+# Note: both ctrl-v and ctrl-r can be configured to different values.
+#
+# While in the vim scrollback mode the following key binding work:
+# motions:
+# h j k l
+# w e b
+# 0 $
+# ctrl-u ctrl-d
+# gg G
+#
+# f<char> - jump to next occurrence of <char> on the current line
+# F<char> - jump to prev occurrence of <char> on the current line
+#
+# visual mode:
+# V v ctrl-v
+# gv - reselect last selection
+#
+# yank:
+# y - yank to primary clipboard (*)
+# Y - yank to secondary clipboard (+)
+#
+# paste:
+# p - pastes onto the end of the command line
+#
+# undo / redo:
+# u / ctrl-R - undo / redo pastes to command line
+#
+# marks:
+# m[a-z] '[a-z] ''
+#
+# search:
+# / - searches up
+# ? - searches down
+# n - next in current direction
+# N - next in opposite direction
+#
+# misc:
+# gf - when the cursor is on a url, open that url in the browser
+#
+# Note: counts can be supplied to most commands like in vim
+################################################################################
+
 my $DEBUG = 1;
 my $DEBUG_FILE = '/tmp/urxvt_vim_scrollback.log';
 my $DEBUG_FH;
@@ -579,7 +627,11 @@ sub key_press_visual {
       $self->{registers}{'"'} = $self->selection();
       $self->normal_mode($event, 1);
    } elsif ($string eq "Y") {
-      # the act of highlighting puts it on the primary clipboard
+      # the act of selecting puts the text on the primary, so just need to copy
+      # to secondary.
+      if (open(my $process, "| xclip -i -selection clipboard")){
+         print $process $self->selection();
+      }
       $self->normal_mode($event, 1);
    } elsif ($string !~ /[\x00-\x1f\x80-\xaf]/) {
       # pass to key_press_normal
