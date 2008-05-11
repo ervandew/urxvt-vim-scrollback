@@ -116,8 +116,11 @@ sub enter {
    }
 
    $self->{view_start} = $self->view_start;
-   $self->{pty_ev_events} = $self->pty_ev_events(urxvt::EVENT_NONE);
-   $self->enable(key_press => \&key_press, resize_all_windows => \&resize_window);
+   $self->{pty_ev_events} = $self->pty_ev_events(urxvt::EV_NONE);
+   $self->enable(
+      key_press => \&key_press,
+      resize_all_windows => \&resize_window
+   );
 
    my ($lnum, $cnum) = $self->screen_cur();
    $self->{orig_nrow} = $self->nrow;
