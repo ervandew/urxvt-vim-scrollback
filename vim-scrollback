@@ -32,7 +32,7 @@
 # motions:
 # h j k l
 # w e b
-# 0 $
+# 0 _ $
 # ctrl-u ctrl-d
 # gg G
 #
@@ -397,6 +397,13 @@ sub key_press_normal {
       my ($lnum, $cnum) = $self->screen_cur();
       my $line = $self->line($lnum);
       $self->move_cursor($event, $line->coord_of(0));
+   } elsif ($string eq "_") {
+      my ($lnum, $cnum) = $self->screen_cur();
+      my $line = $self->line($lnum);
+      my $ltrimmed = $line->t;
+      $ltrimmed =~ s/^\s+//;
+      my $offset = (length($line->t) - length($ltrimmed));
+      $self->move_cursor($event, $line->coord_of(0 + $offset));
    } elsif ($string eq '$') {
       my ($lnum, $cnum) = $self->screen_cur();
       my $line = $self->line($lnum);
@@ -805,7 +812,7 @@ sub make_selection {
 
 sub clear_selection {
    my ($self, $event) = @_;
-   $self->make_selection($event, 1, 1, 1, 1);
+   $self->make_selection($event, -1, -1, -1, -1);
 }
 
 sub set_mark {
