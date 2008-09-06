@@ -8,6 +8,7 @@
 # Author: Eric Van Dewoestine (ervandew@gmail.com)
 
 # TODO:
+#   - really learn perl and clean this nasty script up.
 #   - search history: support filtering by user's typed results.
 #   - motion based yank: y<motion>
 #
@@ -21,6 +22,8 @@
 # Api: http://cvs.schmorp.de/rxvt-unicode/doc/rxvtperl.3.html
 
 ################################################################################
+# Usage
+#
 # While not in vim scrollback mode
 # ctrl-v - enter vim-scrollback mode
 # ctrl-r * - pastes the primary clipboard onto the command line
@@ -28,7 +31,7 @@
 #
 # Note: both ctrl-v and ctrl-r can be configured to different values.
 #
-# While in the vim scrollback mode the following key binding work:
+# While in the vim scrollback mode the following key bindings work:
 # motions:
 # h j k l
 # w e b
@@ -61,11 +64,34 @@
 # ? - searches down
 # n - next in current direction
 # N - next in opposite direction
+# * - search for word under the cursor
 #
 # misc:
 # gf - when the cursor is on a url, open that url in the browser
 #
 # Note: counts can be supplied to most commands like in vim
+#
+################################################################################
+# Configuration
+#
+# Vim scrollback supports various configuration settings which can be supplied
+# in your ~/.Xdefaults file.
+#
+# # configure alt-s as the keybinding to enter vim scrollback mode.
+# urxvt*vim-scrollback: M-s
+#
+# # configure alt-p as the keybinding to paste mode.
+# urxvt*vim-scrollback-paste: M-p
+#
+# # configure the background and foreground colors used for the status bar while
+# # in scrollback mode.
+# urxvt*vim-scrollback-bg: 16
+# urxvt*vim-scrollback-fg: 10
+#
+# # configure the command used when opening urls. Note, uses the same
+# # configuration as the url launcher script shipped with urxvt.
+# urxvt*urlLauncher: firefox
+#
 ################################################################################
 
 my $DEBUG = 1;
@@ -295,6 +321,9 @@ sub key_press_normal {
    if ($string =~ /^[\/?]$/) { # start search mode with / or ?
       ($self->{search_lnum}, $self->{search_cnum}) = $self->screen_cur();
       ($self->{search_slnum}, $self->{search_scnum}) = $self->screen_cur();
+      my $line = $self->line($self->{search_lnum});
+      $self->{search_cnum} = $line->offset_of($self->{search_lnum}, $self->{search_cnum});
+      $self->{search_scnum} = $self->{search_cnum};
       ($self->{search_olnum}, $self->{search_ocnum}) = $self->screen_cur();
       $self->{mode} = "search";
       $self->{search} = "(?i)";
@@ -322,17 +351,26 @@ sub key_press_normal {
       $self->{search_wrap} = 0;
       ($self->{search_lnum}, $self->{search_cnum}) = $self->screen_cur();
       ($self->{search_slnum}, $self->{search_scnum}) = $self->screen_cur();
+      my $line = $self->line($self->{search_lnum});
+      $self->{search_cnum} = $line->offset_of($self->{search_lnum}, $self->{search_cnum});
+      $self->{search_scnum} = $self->{search_cnum};
       $self->search($event, $self->{search_dir}, 1);
       $self->{search_wrap} = 0;
 
    } elsif ($string eq "n") { # next search result (up)
       ($self->{search_lnum}, $self->{search_cnum}) = $self->screen_cur();
       ($self->{search_slnum}, $self->{search_scnum}) = $self->screen_cur();
+      my $line = $self->line($self->{search_lnum});
+      $self->{search_cnum} = $line->offset_of($self->{search_lnum}, $self->{search_cnum});
+      $self->{search_scnum} = $self->{search_cnum};
       $self->search($event, $self->{search_dir}, 1);
       $self->{search_wrap} = 0;
    } elsif ($string eq "N") { # previous search result (down)
       ($self->{search_lnum}, $self->{search_cnum}) = $self->screen_cur();
       ($self->{search_slnum}, $self->{search_scnum}) = $self->screen_cur();
+      my $line = $self->line($self->{search_lnum});
+      $self->{search_cnum} = $line->offset_of($self->{search_lnum}, $self->{search_cnum});
+      $self->{search_scnum} = $self->{search_cnum};
       $self->search($event, 0 - $self->{search_dir}, 1);
       $self->{search_wrap} = 0;
 
@@ -512,7 +550,6 @@ sub key_press_normal {
    } elsif ($string =~ /^\cG$/) {
       if ($DEBUG){
          my ($lnum, $cnum) = $self->screen_cur();
-         $self->debug("line $lnum, col $cnum");
       }
 
    # marks
@@ -542,7 +579,7 @@ sub key_press_normal {
         $self->exec_async(@exec);
       }
 
-   }else{
+   }elsif ($string =~ /^[0-9]+$/) {
       $self->msg($self->{msg});
       return 1;
    }
@@ -560,14 +597,16 @@ sub key_press_search {
       unshift(@{$self->{search_history}}, $self->{search});
       if ($self->{search_found}){
          $self->set_mark("'");
-         my ($line, $col) = ($self->{search_found}[0], $self->{search_found}[1]);
-         if ($line){
-            $self->move_cursor($event, $line, $col);
+         my ($lnum, $cnum) = ($self->{search_found}[0], $self->{search_found}[1]);
+         if ($lnum){
+            my $line = $self->line($lnum);
+            ($lnum, $cnum) = $line->coord_of($cnum);
+            $self->move_cursor($event, $lnum, $cnum);
          }
       }
    } elsif ($keysym == 0xff1b || $string =~ /^\cC$/) { # escape or ctrl-c
       $self->normal_mode($event, 1);
-      $self->move_cursor($event, $self->{search_lnum}, $self->{search_cnum});
+      $self->move_cursor($event, $self->{search_olnum}, $self->{search_ocnum});
    } elsif ($keysym == 0xff08) { # backspace
       substr $self->{search}, -1, 1, "";
       $self->{search_save} = $self->{search};
@@ -689,32 +728,37 @@ sub search {
 
          my $text = $line->t;
          if ($text =~ /$re/g) {
-            my ($slnum, $scnum) = $line->coord_of($-[0]);
-            my ($elnum, $ecnum) = $line->coord_of($+[0]);
+            my ($slnum, $selscnum) = $line->coord_of($-[0]);
+            my ($elnum, $selecnum) = $line->coord_of($+[0]);
+            my $scnum = $-[0];
+            my $ecnum = $+[0];
 
             while ($text =~ /$re/g and
                ($dir < 0 or ($dir > 0 and $scnum <= $search_col)))
             {
               my ($nlnum, $ncnum) = $line->coord_of($-[0]);
+              my $ncnum = $-[0];
               if (($dir < 0 and $ncnum < $search_col) or
                   ($dir > 0 and $ncnum > $search_col))
               {
-                 ($slnum, $scnum) = $line->coord_of($-[0]);
-                 ($elnum, $ecnum) = $line->coord_of($+[0]);
+                 ($slnum, $selscnum) = $line->coord_of($-[0]);
+                 ($elnum, $selecnum) = $line->coord_of($+[0]);
+                 $scnum = $-[0];
+                 $ecnum = $+[0];
               }
             }
 
             if (($dir < 0 and ($scnum < $search_col or $slnum < $search_row)) or
                 ($dir > 0 and ($scnum > $search_col or $slnum > $search_row)))
             {
-               $self->make_selection($event, $slnum, $scnum, $elnum, $ecnum);
+               $self->make_selection($event, $slnum, $selscnum, $elnum, $selecnum);
                $self->{search_found} = [$slnum, $scnum];
                $self->view_start(List::Util::min 0, $slnum - ($self->nrow >> 1));
                if ($move_cursor){
                   $self->set_mark("'");
                   $self->{search_lnum} = $slnum;
                   $self->{search_cnum} = $scnum;
-                  $self->move_cursor($event, $slnum, $scnum);
+                  $self->move_cursor($event, $slnum, $selscnum);
 
                   if ($dir < 0 and $search_row > $search_srow
                         and not $self->{search_wrap_notify}){
@@ -730,7 +774,8 @@ sub search {
             }
          }
          if ($dir < 0 and $search_row == $top_row){
-            ($search_row, $search_col) = ($bot_row, $self->ncol);
+            $search_row = $bot_row;
+            $search_col = $self->line($search_row)->l;
             $self->{search_wrap} = 1;
             $self->{search_wrap_notify} = 0;
          }elsif ($dir > 0 and $search_row == $bot_row){
@@ -739,7 +784,7 @@ sub search {
             $self->{search_wrap_notify} = 0;
          }else{
             $search_row = $dir < 0 ? $line->beg - 1 : $line->end + 1;
-            $search_col = $dir < 0 ? $self->ncol : -1;
+            $search_col = $dir < 0 ? $self->line($search_row)->l : -1;
          }
       }
    }
@@ -755,7 +800,9 @@ sub incremental_search {
 
    if(not $self->search($event, $self->{search_dir})){
       $self->clear_selection($event);
-      $self->move_cursor($event, $self->{search_slnum}, $self->{search_scnum});
+      my $line = $self->line($self->{search_slnum});
+      my ($lnum, $cnum) = $line->coord_of($self->{search_scnum});
+      $self->move_cursor($event, $lnum, $cnum);
    }
    $self->{search_lnum} = $self->{search_slnum};
    $self->{search_cnum} = $self->{search_scnum};
