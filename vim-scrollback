@@ -189,18 +189,31 @@ sub enter {
    $style = urxvt::SET_BGCOLOR($style, $bg_color) if $bg_color;
    $self->{msg_style} = $style;
 
-   # copied from matcher
-   $self->{launcher} = $self->my_resource("launcher") ||
+   # modified from matcher
+   my $urlLauncher = $self->my_resource("launcher") ||
                        $self->x_resource("urlLauncher") ||
                        "sensible-browser";
+   # handle shell variable
+   if ($urlLauncher =~ /^\$/) {
+      $urlLauncher =~ s/\$//;
+      $urlLauncher = $ENV{$urlLauncher};
+   }
+   $self->{launcher} = $urlLauncher;
+
+   # copied from matcher
    my @defaults = ($url);
    my @matchers;
    for (my $idx = 0; defined (my $res = $self->my_resource("pattern.$idx") || $defaults[$idx]); $idx++) {
-      $res = $self->locale_decode ($res);
+      $res = $self->locale_decode($res);
       utf8::encode $res;
       my $launcher = $self->my_resource("launcher.$idx");
       $launcher =~ s/\$&|\$\{&\}/\${0}/g if ($launcher);
-      unshift @matchers, [qr($res)x,$launcher];
+      # handle shell variable
+      if ($launcher =~ /^\$/) {
+         $launcher =~ s/\$//;
+         $launcher = $ENV{$launcher};
+      }
+      unshift @matchers, [qr($res)x, $launcher];
    }
    $self->{matchers} = \@matchers;
 
@@ -575,11 +588,20 @@ sub key_press_normal {
    } elsif ($string eq "gf") {
       my ($lnum, $cnum) = $self->screen_cur();
       my @exec = $self->command_for($lnum, $cnum);
+
+      # handle ticket numbers
+      # TODO: convert to generic url variable substitution support.
+      if (@exec[1] =~ /^#\d+$/){
+         (my $ticket = @exec[1]) =~ s/^#//;
+         (my $url = @exec[0]) =~ s/<id>/$ticket/;
+         @exec = ($self->{launcher}, $url);
+      }
+
       if (@exec){
         $self->exec_async(@exec);
       }
 
-   }elsif ($string =~ /^[0-9]+$/) {
+   }elsif ($string =~ /^([0-9]+|g)$/) {
       $self->msg($self->{msg});
       return 1;
    }
@@ -1014,7 +1036,7 @@ sub command_for {
          my @end = @+;
          if (!defined($col) || ($-[0] <= $col && $+[0] >= $col)) {
             if ($launcher !~ /\$/) {
-               return ($launcher,$match);
+               return ($launcher, $match);
             } else {
                # It'd be nice to just access a list like ($&,$1,$2...),
                # but alas, m//g behaves differently in list context.
