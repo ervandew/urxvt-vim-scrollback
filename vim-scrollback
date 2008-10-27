@@ -67,7 +67,10 @@
 # * - search for word under the cursor
 #
 # misc:
-# gf - when the cursor is on a url, open that url in the browser
+# gf - behave like the shipped matcher plugin for urxvt.  allows you to open a
+#      url or other configured pattern and launcher.  See matcher docs for info
+#      on configuring:
+#      http://cvs.schmorp.de/rxvt-unicode/doc/rxvtperl.3.html#PREPACKAGED_EXTENSIONS
 #
 # Note: counts can be supplied to most commands like in vim
 #
@@ -213,7 +216,7 @@ sub enter {
          $launcher =~ s/\$//;
          $launcher = $ENV{$launcher};
       }
-      unshift @matchers, [qr($res)x, $launcher];
+      push @matchers, [qr($res)x, $launcher];
    }
    $self->{matchers} = \@matchers;
 
