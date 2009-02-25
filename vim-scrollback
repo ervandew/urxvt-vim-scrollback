@@ -707,7 +707,8 @@ sub key_press_visual {
          print $process $self->selection();
       }
       $self->normal_mode($event, 1);
-   } elsif ($string !~ /[\x00-\x1f\x80-\xaf]/) {
+   #} elsif ($string !~ /[\x00-\x1f\x80-\xaf]/) {
+   }else{
       # pass to key_press_normal
       return $self->key_press_normal($event, $keysym, $string);
    }
