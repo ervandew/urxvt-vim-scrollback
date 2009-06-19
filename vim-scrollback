@@ -604,7 +604,7 @@ sub key_press_normal {
         $self->exec_async(@exec);
       }
 
-   }elsif ($string =~ /^([0-9]+|g)$/) {
+   }elsif ($string =~ /^([0-9]+|[gm'])$/) {
       $self->msg($self->{msg});
       return 1;
    }
