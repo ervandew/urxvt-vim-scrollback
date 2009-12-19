@@ -1,11 +1,24 @@
 #! perl
 
 # This extension implements vim like scrollback buffer navigation, search, and
-# paste.
-# Initially based on the searchable-scrollback extension and some gf related
-# code copied from matcher.
+# paste.  Initially based on the searchable-scrollback extension and some gf
+# related code borrowed from the matcher extension.
 #
-# Author: Eric Van Dewoestine (ervandew@gmail.com)
+# Copyright (C) 2007 - 2009  Eric Van Dewoestine
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 # TODO:
 #   - really learn perl and clean this nasty script up.
@@ -29,7 +42,8 @@
 # ctrl-r * - pastes the primary clipboard onto the command line
 # ctrl-r + - pastes the secondary clipboard onto the command line
 #
-# Note: both ctrl-v and ctrl-r can be configured to different values.
+# Note: both ctrl-v and ctrl-r can be configured to different values
+# (configuration examples further down).
 #
 # While in the vim scrollback mode the following key bindings work:
 # motions:
@@ -80,19 +94,19 @@
 # Vim scrollback supports various configuration settings which can be supplied
 # in your ~/.Xdefaults file.
 #
-# # configure alt-s as the keybinding to enter vim scrollback mode.
+# ; configure alt-s as the keybinding to enter vim scrollback mode.
 # urxvt*vim-scrollback: M-s
 #
-# # configure alt-p as the keybinding to paste mode.
+# ; configure alt-p as the keybinding to paste mode.
 # urxvt*vim-scrollback-paste: M-p
 #
-# # configure the background and foreground colors used for the status bar while
-# # in scrollback mode.
+# ; configure the background and foreground colors used for the status bar while
+# ; in scrollback mode.
 # urxvt*vim-scrollback-bg: 16
 # urxvt*vim-scrollback-fg: 10
 #
-# # configure the command used when opening urls. Note, uses the same
-# # configuration as the url launcher script shipped with urxvt.
+# ; configure the command used when opening urls. Note, uses the same
+# ; configuration as the url launcher script shipped with urxvt.
 # urxvt*urlLauncher: firefox
 #
 ################################################################################
