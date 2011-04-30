@@ -4,7 +4,7 @@
 # paste.  Initially based on the searchable-scrollback extension and some gf
 # related code borrowed from the matcher extension.
 #
-# Copyright (C) 2007 - 2009  Eric Van Dewoestine
+# Copyright (C) 2007 - 2011  Eric Van Dewoestine
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -95,15 +95,19 @@
 # in your ~/.Xdefaults file.
 #
 # ; configure alt-s as the keybinding to enter vim scrollback mode.
-# urxvt*vim-scrollback: M-s
+# urxvt.vim-scrollback: M-s
 #
 # ; configure alt-p as the keybinding to paste mode.
-# urxvt*vim-scrollback-paste: M-p
+# urxvt.vim-scrollback-paste: M-p
 #
 # ; configure the background and foreground colors used for the status bar while
 # ; in scrollback mode.
-# urxvt*vim-scrollback-bg: 16
-# urxvt*vim-scrollback-fg: 10
+# urxvt.vim-scrollback-bg: 16
+# urxvt.vim-scrollback-fg: 10
+#
+# ; configure vim-scrollback specific matchers
+# urxvt.vim-scrollback.pattern.1: \\B(/\\S+?):(\\d+)(?=:|$)
+# urxvt.vim-scrollback.launcher.1: gvim +$2 $1
 #
 # ; configure the command used when opening urls. Note, uses the same
 # ; configuration as the url launcher script shipped with urxvt.
@@ -157,6 +161,9 @@ sub enter {
       open($DEBUG_FH, ">$DEBUG_FILE");
       select((select($DEBUG_FH), $| = 1)[0]);
    }
+
+   ($self->{name} = __PACKAGE__) =~ s/.*:://;
+   $self->{name} =~ tr/_/-/;
 
    $self->{view_start} = $self->view_start;
    $self->{pty_ev_events} = $self->pty_ev_events(urxvt::EV_NONE);
