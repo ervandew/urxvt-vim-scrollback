@@ -58,7 +58,7 @@ While in the vim scrollback mode the following key bindings are available:
   - ? - searches down
   - n - next in current direction
   - N - next in opposite direction
-  - * - search for word under the cursor
+  - \* - search for word under the cursor
 
 - misc:
 
