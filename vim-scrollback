@@ -4,7 +4,7 @@
 # paste.  Initially based on the searchable-scrollback extension and some gf
 # related code borrowed from the matcher extension.
 #
-# Copyright (C) 2007 - 2011  Eric Van Dewoestine
+# Copyright (C) 2007 - 2012  Eric Van Dewoestine
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1117,8 +1117,9 @@ sub key_press_paste {
             $self->tt_write($text);
          }else{
             if(open(my $process, "xclip -o -selection $selection |")){
-               $text = join('', <$process>);
+               $text = join("\r", <$process>);
                $self->tt_write($text);
+               close $process;
             }
          }
       }
