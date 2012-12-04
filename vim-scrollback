@@ -1117,8 +1117,20 @@ sub key_press_paste {
             $self->tt_write($text);
          }else{
             if(open(my $process, "xclip -o -selection $selection |")){
-               $text = join("\r", <$process>);
-               $self->tt_write($text);
+               while ($text = <$process>){
+                  # between rxvt-unicode 9.14 and 9.15 (or some other factor)
+                  # writing out new lines doesn't work (they seem to be
+                  # stripped), but using carriage returns does, so replace \n
+                  # with \r so pasting works with both versions (removing of \n
+                  # mostly to accommodate paste into vim since the term won't
+                  # issue both \n and \r, but vim will, resulting in extra lines
+                  # between pasted text... may affect other terminal apps as
+                  # well).
+                  $text =~ s/\n$/\r/;
+                  $self->tt_write($text);
+               }
+               #$text = join("\r", <$process>);
+               #$self->tt_write($text);
                close $process;
             }
          }
