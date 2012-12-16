@@ -328,9 +328,9 @@ sub key_press_normal {
    $self->msg("");
    if ($keysym == 0xff1b ||
       $string =~ /^\cC$/ ||
-      ($self->{key_buffer} =~ /^:qa?$/ && $keysym == 0xff0d))
-   { # esc, ctrl-c, :q<enter>, :qa<enter>
-      if($self->{key_buffer} and $self->{key_buffer} !~ /^:qa?$/){
+      ($self->{key_buffer} =~ /^$/ && $keysym == 0xff0d))
+   { # esc, ctrl-c, <enter>
+      if($self->{key_buffer}){
          $self->{key_buffer} = "";
          $self->msg("");
       }else{
