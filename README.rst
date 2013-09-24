@@ -25,7 +25,7 @@ While in the vim scrollback mode the following key bindings are available:
   - h j k l
   - w e b
   - 0 _ $
-  - ctrl-u ctrl-d
+  - ctrl-u ctrl-d ctrl-f ctrl-b
   - gg G
   - f<char> - jump to next occurrence of <char> on the current line
   - F<char> - jump to prev occurrence of <char> on the current line
