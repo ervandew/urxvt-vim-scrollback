@@ -491,12 +491,22 @@ sub key_press_normal {
       $self->move_cursor($event, $self->{orig_lnum}, $self->{orig_cnum});
    } elsif ($string =~ /^\cD$/) {
       my ($lnum, $cnum) = $self->screen_cur();
-      my $row = $lnum + 20;
+      my $row = $lnum + $self->nrow / 2;
       $row = $row < $self->{orig_lnum} ? $row : $self->{orig_lnum};
       $self->move_cursor($event, $row, $cnum);
    } elsif ($string =~ /^\cU$/) {
       my ($lnum, $cnum) = $self->screen_cur();
-      my $row = $lnum - 20;
+      my $row = $lnum - $self->nrow / 2;
+      $row = $row > $self->top_row ? $row : $self->top_row;
+      $self->move_cursor($event, $row, $cnum);
+   } elsif ($string =~ /^\cF$/) {
+      my ($lnum, $cnum) = $self->screen_cur();
+      my $row = $lnum + $self->nrow - 1;
+      $row = $row < $self->{orig_lnum} ? $row : $self->{orig_lnum};
+      $self->move_cursor($event, $row, $cnum);
+   } elsif ($string =~ /^\cB$/) {
+      my ($lnum, $cnum) = $self->screen_cur();
+      my $row = $lnum - $self->nrow + 1;
       $row = $row > $self->top_row ? $row : $self->top_row;
       $self->move_cursor($event, $row, $cnum);
    } elsif ($string eq "w" or $string eq "e") {
