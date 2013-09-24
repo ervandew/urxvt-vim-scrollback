@@ -4,7 +4,7 @@
 # paste.  Initially based on the searchable-scrollback extension and some gf
 # related code borrowed from the matcher extension.
 #
-# Copyright (C) 2007 - 2012  Eric Van Dewoestine
+# Copyright (C) 2007 - 2013  Eric Van Dewoestine
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@
 # h j k l
 # w e b
 # 0 _ $
-# ctrl-u ctrl-d
+# ctrl-u ctrl-d ctrl-f ctrl-b
 # gg G
 #
 # f<char> - jump to next occurrence of <char> on the current line
