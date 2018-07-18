@@ -412,9 +412,9 @@ sub key_press_normal {
       $self->{search_wrap} = 0;
 
    # visual mode
-   } elsif ($string eq "v") { # start char based visual selection mode
+   } elsif ($string eq "v" or $string eq " ") { # start char based visual selection mode
       $self->{mode} = "visual";
-      $self->{mode_info} = "-- VISUAL -- ";
+      $self->{mode_info} = "-- VISUAL --";
       ($self->{visual_lnum}, $self->{visual_cnum}) = $self->screen_cur();
       my ($lnum, $cnum) = $self->screen_cur();
       $self->move_cursor($event, $lnum, $cnum);
@@ -440,28 +440,28 @@ sub key_press_normal {
       $self->term_write($event, $self->{registers}{'"'});
 
    # motions
-   } elsif ($string eq "j") {
+	 } elsif ($string eq "j" or $keysym eq "65364") {
       my ($lnum, $cnum) = $self->screen_cur();
       for(my $ii = 0; $ii < $self->{repeat}; $ii++){
          if ($lnum < $self->nrow - 2){
             $self->move_cursor($event, ++$lnum, $cnum);
          }
       }
-   } elsif ($string eq "k") {
+	 } elsif ($string eq "k" or $keysym eq "65362" ) {
       my ($lnum, $cnum) = $self->screen_cur();
       for(my $ii = 0; $ii < $self->{repeat}; $ii++){
          if ($lnum > $self->top_row){
             $self->move_cursor($event, --$lnum, $cnum);
          }
       }
-   } elsif ($string eq "h") {
+	 } elsif ($string eq "h" or $keysym eq "65361") {
       my ($lnum, $cnum) = $self->screen_cur();
       for(my $ii = 0; $ii < $self->{repeat}; $ii++){
          if ($cnum > 0){
             $self->move_cursor($event, $lnum, --$cnum);
          }
       }
-   } elsif ($string eq "l") {
+	 } elsif ($string eq "l" or $keysym eq "65363") {
       my ($lnum, $cnum) = $self->screen_cur();
       for(my $ii = 0; $ii < $self->{repeat}; $ii++){
          if ($cnum < $self->ncol - 1){
